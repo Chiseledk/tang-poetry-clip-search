@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全唐诗智能匹配系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header-title {
+            color: #1a2b48;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header-desc {
+            color: #6b7c93;
+            font-size: 14px;
+        }
+
+        /* 标签页样式 */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 25px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            color: #6b7c93;
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab-item.active {
+            color: #2f80ed;
+            border-bottom-color: #2f80ed;
+        }
+
+        .tab-item:hover {
+            color: #2f80ed;
+        }
+
+        /* 标签内容样式 */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1a2b48;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #2f80ed;
+            box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        /* 上传区域样式 */
+        .upload-area {
+            border: 2px dashed #e8e8e8;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+
+        .upload-area:hover {
+            border-color: #2f80ed;
+            background-color: #f8fafe;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #b0b7c3;
+            margin-bottom: 12px;
+        }
+
+        .upload-tip {
+            color: #6b7c93;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .upload-file-tip {
+            font-size: 12px;
+            color: #9aa2b1;
+            margin-top: 8px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            background-color: #2f80ed;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #1e6ce6;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* 结果区域样式 */
+        .result-area {
+            margin-top: 30px;
+            padding: 24px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            min-height: 120px;
+        }
+
+        .result-title {
+            color: #1a2b48;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        /* 诗歌卡片样式 */
+        .poetry-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .poetry-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .poetry-title {
+            color: #2f80ed;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .poetry-content {
+            color: #1a2b48;
+            font-size: 14px;
+            line-height: 2;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+            font-family: "SimSun", "Songti SC", serif;
+        }
+
+        .poetry-meta {
+            color: #6b7c93;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* 状态提示样式 */
+        .loading {
+            text-align: center;
+            color: #2f80ed;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading-text {
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .error-text {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            padding: 8px 12px;
+            background-color: #fef5f5;
+            border-radius: 4px;
+        }
+
+        /* 批量匹配特有样式 */
+        .batch-stats {
+            background-color: #e8f4fd;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #1a2b48;
+        }
+
+        .batch-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .batch-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .batch-item-title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #2f80ed;
+        }
+
+        .batch-item-error {
+            color: #e53e3e;
+            font-size: 13px;
+            padding: 8px;
+            background-color: #fef5f5;
+            border-radius: 4px;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .header-title {
+                font-size: 24px;
+            }
+
+            .tab-item {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .upload-area {
+                padding: 30px 15px;
+            }
+
+            .upload-icon {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="header-title">全唐诗智能匹配系统</h1>
+            <p class="header-desc">支持图片匹配、关键词搜索、相似诗歌推荐</p>
+        </div>
+
+        <!-- 标签页切换（已删除文本描述匹配标签） -->
+        <div class="tabs">
+            <div class="tab-item active" data-tab="single-image">单图片匹配</div>
+            <div class="tab-item" data-tab="batch-image">批量图片匹配</div>
+            <div class="tab-item" data-tab="keyword-search">关键词搜索</div>
+            <div class="tab-item" data-tab="similar-recommend">相似诗歌推荐</div>
+        </div>
+
+        <!-- 1. 单图片匹配内容 -->
+        <div class="tab-content active" id="single-image">
+            <div class="form-group">
+                <label class="form-label" for="single-image-file">上传图片</label>
+                <div class="upload-area" id="single-upload-area">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-tip">点击或拖拽图片到此处上传</div>
+                    <div class="upload-file-tip">支持 JPG、PNG、JPEG 等常见图片格式</div>
+                    <input type="file" id="single-image-file" accept="image/*" style="display: none;">
+                </div>
+                <div id="single-image-name" style="font-size: 12px; color: #6b7c93; margin-top: 8px;"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="single-top-k">返回诗歌数量</label>
+                <input type="number" id="single-top-k" min="1" max="10" value="3">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="single-category">诗歌分类筛选（可选）</label>
+                <select id="single-category">
+                    <option value="">全部分类</option>
+                    <option value="山水类">山水类</option>
+                    <option value="田园类">田园类</option>
+                    <option value="雪景类">雪景类</option>
+                    <option value="四季类">四季类</option>
+                    <option value="送别类">送别类</option>
+                    <option value="思乡类">思乡类</option>
+                    <option value="未分类">未分类</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button class="btn" id="single-submit">开始匹配诗歌</button>
+            </div>
+            <div class="loading" id="single-loading">
+                <div>🔄</div>
+                <div class="loading-text">正在匹配，请稍候...</div>
+            </div>
+            <div class="error-text" id="single-error"></div>
+            <div class="result-area" id="single-result">
+                <div class="result-title">匹配结果</div>
+                <div style="text-align: center; color: #6b7c93; padding: 20px;">
+                    请上传图片并点击匹配按钮获取结果
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 批量图片匹配内容 -->
+        <div class="tab-content" id="batch-image">
+            <div class="form-group">
+                <label class="form-label" for="batch-image-files">上传多张图片</label>
+                <div class="upload-area" id="batch-upload-area">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-tip">点击或拖拽多张图片到此处上传</div>
+                    <div class="upload-file-tip">支持按住 Ctrl/Shift 键多选图片</div>
+                    <input type="file" id="batch-image-files" accept="image/*" multiple style="display: none;">
+                </div>
+                <div id="batch-image-count" style="font-size: 12px; color: #6b7c93; margin-top: 8px;"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="batch-top-k">每张图片返回诗歌数量</label>
+                <input type="number" id="batch-top-k" min="1" max="10" value="3">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="batch-category">诗歌分类筛选（可选）</label>
+                <select id="batch-category">
+                    <option value="">全部分类</option>
+                    <option value="山水类">山水类</option>
+                    <option value="田园类">田园类</option>
+                    <option value="雪景类">雪景类</option>
+                    <option value="四季类">四季类</option>
+                    <option value="送别类">送别类</option>
+                    <option value="思乡类">思乡类</option>
+                    <option value="未分类">未分类</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button class="btn" id="batch-submit">批量匹配诗歌</button>
+            </div>
+            <div class="loading" id="batch-loading">
+                <div>🔄</div>
+                <div class="loading-text">正在批量处理，请稍候...</div>
+            </div>
+            <div class="error-text" id="batch-error"></div>
+            <div class="result-area" id="batch-result">
+                <div class="result-title">批量匹配结果</div>
+                <div style="text-align: center; color: #6b7c93; padding: 20px;">
+                    请上传多张图片并点击批量匹配按钮获取结果
+                </div>
+            </div>
+        </div>
+
+        <!-- 已删除：文本描述匹配内容板块 -->
+
+        <!-- 3. 关键词搜索内容 -->
+        <div class="tab-content" id="keyword-search">
+            <div class="form-group">
+                <label class="form-label" for="keyword-content">输入搜索关键词</label>
+                <input type="text" id="keyword-content" placeholder="请输入关键词，例如：西湖、明月、思乡、田园、雪">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="keyword-top-k">返回诗歌数量</label>
+                <input type="number" id="keyword-top-k" min="1" max="10" value="3">
+            </div>
+            <div class="form-group">
+                <button class="btn" id="keyword-submit">搜索诗歌</button>
+            </div>
+            <div class="loading" id="keyword-loading">
+                <div>🔄</div>
+                <div class="loading-text">正在搜索，请稍候...</div>
+            </div>
+            <div class="error-text" id="keyword-error"></div>
+            <div class="result-area" id="keyword-result">
+                <div class="result-title">搜索结果</div>
+                <div style="text-align: center; color: #6b7c93; padding: 20px;">
+                    请输入关键词并点击搜索按钮获取结果
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 相似诗歌推荐内容 -->
+        <div class="tab-content" id="similar-recommend">
+            <div class="form-group">
+                <label class="form-label" for="recommend-title">输入诗歌标题</label>
+                <input type="text" id="recommend-title" placeholder="请输入完整诗歌标题（包含书名号），例如：《静夜思》、《山居秋暝》、《望庐山瀑布》">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="recommend-top-k">推荐相似诗歌数量</label>
+                <input type="number" id="recommend-top-k" min="1" max="10" value="3">
+            </div>
+            <div class="form-group">
+                <button class="btn" id="recommend-submit">推荐相似诗歌</button>
+            </div>
+            <div class="loading" id="recommend-loading">
+                <div>🔄</div>
+                <div class="loading-text">正在推荐，请稍候...</div>
+            </div>
+            <div class="error-text" id="recommend-error"></div>
+            <div class="result-area" id="recommend-result">
+                <div class="result-title">推荐结果</div>
+                <div style="text-align: center; color: #6b7c93; padding: 20px;">
+                    请输入诗歌标题并点击推荐按钮获取结果
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 后端接口基础地址（本地默认，若后端部署在服务器请修改此处）
+        const BASE_URL = 'http://127.0.0.1:5000';
+
+        // ===================== 通用工具函数 =====================
+        // 切换标签页
+        function initTabs() {
+            const tabItems = document.querySelectorAll('.tab-item');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // 移除所有激活状态
+                    tabItems.forEach(ti => ti.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+
+                    // 激活当前标签
+                    item.classList.add('active');
+                    const tabId = item.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+
+        // 显示加载状态
+        function showLoading(loadingId) {
+            document.getElementById(loadingId).style.display = 'block';
+        }
+
+        // 隐藏加载状态
+        function hideLoading(loadingId) {
+            document.getElementById(loadingId).style.display = 'none';
+        }
+
+        // 显示错误信息
+        function showError(errorId, message) {
+            const errorElem = document.getElementById(errorId);
+            errorElem.innerText = message;
+            errorElem.style.display = 'block';
+            // 3秒后自动隐藏错误
+            setTimeout(() => {
+                hideError(errorId);
+            }, 3000);
+        }
+
+        // 隐藏错误信息
+        function hideError(errorId) {
+            document.getElementById(errorId).style.display = 'none';
+        }
+
+        // 渲染诗歌列表
+        function renderPoetryList(container, poetryList) {
+            // 清空原有内容
+            container.innerHTML = '<div class="result-title">匹配结果</div>';
+
+            if (poetryList.length === 0) {
+                container.innerHTML += '<div style="text-align: center; color: #6b7c93; padding: 20px;">暂无匹配结果</div>';
+                return;
+            }
+
+            // 遍历渲染诗歌卡片
+            poetryList.forEach(poetry => {
+                const poetryCard = document.createElement('div');
+                poetryCard.className = 'poetry-card';
+
+                // 组装元数据（相似度/匹配数）
+                let metaHtml = '';
+                if (poetry.similarity !== undefined) {
+                    metaHtml = `
+                        <div class="poetry-meta">
+                            <span>分类：${poetry.category || '未分类'}</span>
+                            <span>相似度：${poetry.similarity}</span>
+                        </div>
+                    `;
+                } else if (poetry.match_count !== undefined) {
+                    metaHtml = `
+                        <div class="poetry-meta">
+                            <span>分类：${poetry.category || '未分类'}</span>
+                            <span>关键词匹配数：${poetry.match_count}</span>
+                        </div>
+                    `;
+                }
+
+                // 卡片内容
+                poetryCard.innerHTML = `
+                    <div class="poetry-title">${poetry.title}</div>
+                    <div class="poetry-content">${poetry.content}</div>
+                    ${metaHtml}
+                `;
+
+                container.appendChild(poetryCard);
+            });
+        }
+
+        // 初始化拖拽上传
+        function initUploadArea(uploadAreaId, fileInputId, tipDisplayId) {
+            const uploadArea = document.getElementById(uploadAreaId);
+            const fileInput = document.getElementById(fileInputId);
+            const tipDisplay = document.getElementById(tipDisplayId);
+
+            // 点击上传区域触发文件选择
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // 拖拽悬浮效果
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#2f80ed';
+                uploadArea.style.backgroundColor = '#f8fafe';
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '#e8e8e8';
+                uploadArea.style.backgroundColor = 'transparent';
+            });
+
+            // 拖拽上传
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#e8e8e8';
+                uploadArea.style.backgroundColor = 'transparent';
+
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    updateUploadTip(tipDisplay, fileInput);
+                }
+            });
+
+            // 文件选择后更新提示
+            fileInput.addEventListener('change', () => {
+                updateUploadTip(tipDisplay, fileInput);
+            });
+        }
+
+        // 更新上传文件提示
+        function updateUploadTip(displayElem, fileInput) {
+            if (fileInput.files.length === 0) {
+                displayElem.innerText = '';
+                return;
+            }
+
+            if (fileInput.multiple) {
+                displayElem.innerText = `已选择：${fileInput.files.length} 张图片`;
+            } else {
+                displayElem.innerText = `已选择：${fileInput.files[0].name}`;
+            }
+        }
+
+        // ===================== 各功能模块初始化（已删除文本描述模块） =====================
+        // 1. 单图片匹配模块
+        function initSingleImageModule() {
+            const singleSubmit = document.getElementById('single-submit');
+            const singleResult = document.getElementById('single-result');
+            const singleImageFile = document.getElementById('single-image-file');
+
+            // 初始化上传区域
+            initUploadArea('single-upload-area', 'single-image-file', 'single-image-name');
+
+            // 提交匹配
+            singleSubmit.addEventListener('click', async () => {
+                if (singleImageFile.files.length === 0) {
+                    showError('single-error', '请先上传图片！');
+                    return;
+                }
+
+                hideError('single-error');
+                showLoading('single-loading');
+
+                // 构建FormData
+                const formData = new FormData();
+                formData.append('image', singleImageFile.files[0]);
+                formData.append('top_k', document.getElementById('single-top-k').value);
+                formData.append('category', document.getElementById('single-category').value);
+
+                try {
+                    const response = await fetch(`${BASE_URL}/retrieve_poetry`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        renderPoetryList(singleResult, data.poetry);
+                    } else {
+                        showError('single-error', `匹配失败：${data.error || '未知错误'}`);
+                    }
+                } catch (err) {
+                    showError('single-error', `网络错误：${err.message}`);
+                } finally {
+                    hideLoading('single-loading');
+                }
+            });
+        }
+
+        // 2. 批量图片匹配模块
+        function initBatchImageModule() {
+            const batchSubmit = document.getElementById('batch-submit');
+            const batchResult = document.getElementById('batch-result');
+            const batchImageFiles = document.getElementById('batch-image-files');
+
+            // 初始化上传区域
+            initUploadArea('batch-upload-area', 'batch-image-files', 'batch-image-count');
+
+            // 提交批量匹配
+            batchSubmit.addEventListener('click', async () => {
+                if (batchImageFiles.files.length === 0) {
+                    showError('batch-error', '请先上传多张图片！');
+                    return;
+                }
+
+                hideError('batch-error');
+                showLoading('batch-loading');
+
+                // 构建FormData
+                const formData = new FormData();
+                for (let i = 0; i < batchImageFiles.files.length; i++) {
+                    formData.append('images', batchImageFiles.files[i]);
+                }
+                formData.append('top_k', document.getElementById('batch-top-k').value);
+                formData.append('category', document.getElementById('batch-category').value);
+
+                try {
+                    const response = await fetch(`${BASE_URL}/batch_retrieve_poetry`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    batchResult.innerHTML = '<div class="result-title">批量匹配结果</div>';
+
+                    if (data.status === 'success') {
+                        // 渲染统计信息
+                        const statsDiv = document.createElement('div');
+                        statsDiv.className = 'batch-stats';
+                        statsDiv.innerText = `总上传：${data.total_count} 张 | 成功：${data.success_count} 张 | 失败：${data.total_count - data.success_count} 张`;
+                        batchResult.appendChild(statsDiv);
+
+                        // 渲染每张图片的结果
+                        data.results.forEach(item => {
+                            const batchItemDiv = document.createElement('div');
+                            batchItemDiv.className = 'batch-item';
+
+                            // 图片标题
+                            const itemTitle = document.createElement('div');
+                            itemTitle.className = 'batch-item-title';
+                            itemTitle.innerText = `图片：${item.filename}（${item.status === 'success' ? '成功' : '失败'}）`;
+                            batchItemDiv.appendChild(itemTitle);
+
+                            if (item.status === 'failed') {
+                                // 渲染错误信息
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'batch-item-error';
+                                errorDiv.innerText = `错误信息：${item.error}`;
+                                batchItemDiv.appendChild(errorDiv);
+                            } else {
+                                // 渲染诗歌结果
+                                const poetryContainer = document.createElement('div');
+                                renderPoetryList(poetryContainer, item.poetry);
+                                // 移除默认的result-title，避免重复
+                                poetryContainer.removeChild(poetryContainer.firstChild);
+                                batchItemDiv.appendChild(poetryContainer);
+                            }
+
+                            batchResult.appendChild(batchItemDiv);
+                        });
+                    } else {
+                        showError('batch-error', `批量处理失败：${data.error || '未知错误'}`);
+                    }
+                } catch (err) {
+                    showError('batch-error', `网络错误：${err.message}`);
+                } finally {
+                    hideLoading('batch-loading');
+                }
+            });
+        }
+
+        // 已删除：initTextDescModule 文本描述匹配模块初始化函数
+
+        // 3. 关键词搜索模块
+        function initKeywordSearchModule() {
+            const keywordSubmit = document.getElementById('keyword-submit');
+            const keywordResult = document.getElementById('keyword-result');
+
+            keywordSubmit.addEventListener('click', async () => {
+                const keywordContent = document.getElementById('keyword-content').value.trim();
+                if (!keywordContent) {
+                    showError('keyword-error', '请输入搜索关键词！');
+                    return;
+                }
+
+                hideError('keyword-error');
+                showLoading('keyword-loading');
+
+                try {
+                    const topK = document.getElementById('keyword-top-k').value;
+                    // GET请求
+                    const response = await fetch(`${BASE_URL}/search_poetry?keyword=${encodeURIComponent(keywordContent)}&top_k=${topK}`);
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        keywordResult.innerHTML = `<div class="result-title">搜索结果（共${data.count}条）</div>`;
+                        if (data.poetry.length === 0) {
+                            keywordResult.innerHTML += '<div style="text-align: center; color: #6b7c93; padding: 20px;">未找到相关诗歌</div>';
+                            return;
+                        }
+                        data.poetry.forEach(poetry => {
+                            const poetryCard = document.createElement('div');
+                            poetryCard.className = 'poetry-card';
+                            poetryCard.innerHTML = `
+                                <div class="poetry-title">${poetry.title}</div>
+                                <div class="poetry-content">${poetry.content}</div>
+                                <div class="poetry-meta">
+                                    <span>分类：${poetry.category || '未分类'}</span>
+                                    <span>关键词匹配数：${poetry.match_count}</span>
+                                </div>
+                            `;
+                            keywordResult.appendChild(poetryCard);
+                        });
+                    } else {
+                        showError('keyword-error', `搜索失败：${data.error || '未知错误'}`);
+                    }
+                } catch (err) {
+                    showError('keyword-error', `网络错误：${err.message}`);
+                } finally {
+                    hideLoading('keyword-loading');
+                }
+            });
+        }
+
+        // 4. 相似诗歌推荐模块
+        function initSimilarRecommendModule() {
+            const recommendSubmit = document.getElementById('recommend-submit');
+            const recommendResult = document.getElementById('recommend-result');
+
+            recommendSubmit.addEventListener('click', async () => {
+                const recommendTitle = document.getElementById('recommend-title').value.trim();
+                if (!recommendTitle) {
+                    showError('recommend-error', '请输入诗歌标题！');
+                    return;
+                }
+
+                hideError('recommend-error');
+                showLoading('recommend-loading');
+
+                try {
+                    const topK = document.getElementById('recommend-top-k').value;
+                    const requestData = {
+                        title: recommendTitle,
+                        top_k: topK
+                    };
+
+                    const response = await fetch(`${BASE_URL}/recommend_poetry`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const data = await response.json();
+
+                    recommendResult.innerHTML = '<div class="result-title">推荐结果</div>';
+
+                    if (data.status === 'success') {
+                        const recommendData = data.data;
+
+                        if (recommendData.error) {
+                            showError('recommend-error', recommendData.error);
+                            return;
+                        }
+
+                        // 渲染目标诗歌
+                        const targetDiv = document.createElement('div');
+                        targetDiv.style.marginBottom = '16px';
+                        targetDiv.innerHTML = `
+                            <div style="font-size: 15px; font-weight: 500; margin-bottom: 8px; color: #1a2b48;">目标诗歌：</div>
+                            <div class="poetry-card">
+                                <div class="poetry-title">${recommendData.target_poetry[0]}</div>
+                                <div class="poetry-content">${recommendData.target_poetry[1]}</div>
+                            </div>
+                        `;
+                        recommendResult.appendChild(targetDiv);
+
+                        // 渲染相似诗歌
+                        const similarTitle = document.createElement('div');
+                        similarTitle.style.fontSize = '15px';
+                        similarTitle.style.fontWeight = '500';
+                        similarTitle.style.marginBottom = '8px';
+                        similarTitle.style.color = '#1a2b48';
+                        similarTitle.innerText = `相似诗歌（共${recommendData.similar_poetry.length}首）：`;
+                        recommendResult.appendChild(similarTitle);
+
+                        recommendData.similar_poetry.forEach(poetry => {
+                            const poetryCard = document.createElement('div');
+                            poetryCard.className = 'poetry-card';
+                            poetryCard.innerHTML = `
+                                <div class="poetry-title">${poetry.title}</div>
+                                <div class="poetry-content">${poetry.content}</div>
+                                <div class="poetry-meta">
+                                    <span>分类：${poetry.category || '未分类'}</span>
+                                    <span>相似度：${poetry.similarity}</span>
+                                </div>
+                            `;
+                            recommendResult.appendChild(poetryCard);
+                        });
+                    } else {
+                        showError('recommend-error', `推荐失败：${data.error || '未知错误'}`);
+                    }
+                } catch (err) {
+                    showError('recommend-error', `网络错误：${err.message}`);
+                } finally {
+                    hideLoading('recommend-loading');
+                }
+            });
+        }
+
+        // ===================== 页面初始化（已删除文本描述模块初始化调用） =====================
+        window.onload = function() {
+            // 初始化标签页
+            initTabs();
+            // 初始化各功能模块
+            initSingleImageModule();
+            initBatchImageModule();
+            initKeywordSearchModule();
+            initSimilarRecommendModule();
+            console.log('页面初始化完成，已对接后端接口：', BASE_URL);
+        };
+    </script>
+</body>
+</html>

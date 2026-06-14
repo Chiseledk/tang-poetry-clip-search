@@ -1,0 +1,8 @@
+代码分为前端与后端，在确保后端正常运行的情况下，再打开前端。
+环境参数配置：
+		- 软件：Pycharm，PyTorch 1.10.2，Transformers 4.17.0，Flask 2.0.2
+		(因为需要用到openai系列中的clip模型，所以需要挂VPN)
+在pycharm中的终端需要模块：
+					pip install torch transformers pillow numpy scikit-learn flask flask-cors
+					pip install hashlib-python3
+					pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu

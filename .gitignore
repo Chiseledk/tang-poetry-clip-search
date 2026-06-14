@@ -1,0 +1,25 @@
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.log
+.idea/
+.ipynb_checkpoints/
+
+# Runtime/user data
+data/records/*
+data/models/*
+!data/records/.gitkeep
+!data/models/.gitkeep
+*.wav
+*.npy
+*.pth
+*.pt
+*.ckpt
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
